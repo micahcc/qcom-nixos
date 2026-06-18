@@ -1,8 +1,0 @@
---- a/drivers/firmware/qcom/qcom_scm.c
-+++ b/drivers/firmware/qcom/qcom_scm.c
-@@ -2332,6 +2332,7 @@
- static const struct of_device_id qcom_scm_qseecom_allowlist[] __maybe_unused = {
- 	{ .compatible = "lenovo,thinkpad-x13s", },
-+	{ .compatible = "qcom,sa8775p", },
- 	{ }
- };
