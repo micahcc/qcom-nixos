@@ -1,0 +1,137 @@
+diff --git a/pd-mapper.c b/pd-mapper.c
+index 1167e02..942fa8d 100644
+--- a/pd-mapper.c
++++ b/pd-mapper.c
+@@ -59,7 +59,7 @@ static void handle_get_domain_list(int sock, const struct qrtr_packet *pkt)
+ 	struct servreg_loc_get_domain_list_resp resp = {};
+ 	struct servreg_loc_get_domain_list_req req = {};
+ 	struct servreg_loc_domain_list_entry *entry;
+-	DEFINE_QRTR_PACKET(resp_buf, 256);
++	DEFINE_QRTR_PACKET(resp_buf, 4096);
+ 	const struct pd_map *pd_map = pd_maps;
+ 	unsigned int txn;
+ 	ssize_t len;
+@@ -76,6 +76,9 @@ static void handle_get_domain_list(int sock, const struct qrtr_packet *pkt)
+ 
+ 	req.name[sizeof(req.name)-1] = '\0';
+ 
++	fprintf(stderr, "[PD-MAPPER] request from node %d port %d: '%s'\n",
++		pkt->node, pkt->port, req.name);
++
+ 	resp.result.result = QMI_RESULT_SUCCESS;
+ 	resp.db_revision_valid = 1;
+ 	resp.db_revision = 1;
+@@ -98,6 +101,13 @@ static void handle_get_domain_list(int sock, const struct qrtr_packet *pkt)
+ 	resp.total_domains_valid = 1;
+ 	resp.total_domains = resp.domain_list_len;
+ 
++	fprintf(stderr, "[PD-MAPPER] response: %d domains for '%s'",
++		resp.domain_list_len, req.name);
++	for (int i = 0; i < resp.domain_list_len; i++)
++		fprintf(stderr, " [%s instance=%d]", resp.domain_list[i].name,
++			resp.domain_list[i].instance_id);
++	fprintf(stderr, "\n");
++
+ respond:
+ 	len = qmi_encode_message(&resp_buf,
+ 				 QMI_RESPONSE, SERVREG_LOC_GET_DOMAIN_LIST,
+@@ -272,6 +282,72 @@ static char *known_extensions[] = {
+   NULL,
+ };
+ 
++static int pd_enumerate_jsons_from_env(struct assoc *json_set)
++{
++	char *env_val, *paths, *path_tok, *saveptr;
++	char firmware_base[PATH_MAX];
++	char dir_path[PATH_MAX];
++	char json_path[PATH_MAX];
++	struct dirent *fw_de;
++	DIR *fw_dir;
++	size_t len;
++	int n;
++
++	env_val = getenv("PD_MAPPER_FIRMWARE_PATH");
++	if (!env_val || !*env_val)
++		return -1;
++
++	/* Read firmware base from sysfs, fall back to /lib/firmware/ */
++	int fw_param_fd = open(FIRMWARE_PARAM_PATH, O_RDONLY);
++	if (fw_param_fd >= 0) {
++		n = read(fw_param_fd, firmware_base, sizeof(firmware_base) - 1);
++		close(fw_param_fd);
++		if (n > 1) {
++			firmware_base[n - 1] = '\0';
++		} else {
++			strcpy(firmware_base, FIRMWARE_BASE);
++		}
++	} else {
++		strcpy(firmware_base, FIRMWARE_BASE);
++	}
++
++	paths = strdup(env_val);
++	if (!paths)
++		return -1;
++
++	for (path_tok = strtok_r(paths, ":", &saveptr); path_tok;
++	     path_tok = strtok_r(NULL, ":", &saveptr)) {
++
++		snprintf(dir_path, sizeof(dir_path), "%s/%s", firmware_base, path_tok);
++
++		fw_dir = opendir(dir_path);
++		if (!fw_dir)
++			continue;
++
++		while ((fw_de = readdir(fw_dir)) != NULL) {
++			int extens_index;
++
++			if (fw_de->d_name[0] == '.')
++				continue;
++
++			len = strlen(fw_de->d_name);
++			for (extens_index = 0; known_extensions[extens_index]; extens_index++) {
++				int extens_len = strlen(known_extensions[extens_index]);
++				if (len > (size_t)extens_len &&
++				    !strcmp(&fw_de->d_name[len - extens_len], known_extensions[extens_index])) {
++					snprintf(json_path, sizeof(json_path), "%s/%s", dir_path, fw_de->d_name);
++					assoc_set(json_set, json_path, NULL);
++					break;
++				}
++			}
++		}
++		closedir(fw_dir);
++	}
++
++	free(paths);
++	return 0;
++}
++
+ static int pd_enumerate_jsons(struct assoc *json_set)
+ {
+ 	char firmware_value[PATH_MAX];
+@@ -381,7 +457,8 @@ static int pd_load_maps(void)
+ 
+ 	assoc_init(&json_set, 20);
+ 
+-	pd_enumerate_jsons(&json_set);
++	if (pd_enumerate_jsons_from_env(&json_set) != 0 || json_set.fill == 0)
++		pd_enumerate_jsons(&json_set);
+ 
+ 	assoc_foreach(jsn, NULL, &json_set, it) {
+ 		ret = pd_load_map(jsn);
+@@ -413,6 +490,16 @@ int main(int argc, char **argv)
+ 		exit(1);
+ 	}
+ 
++	{
++		const struct pd_map *m = pd_maps;
++		fprintf(stderr, "[PD-MAPPER] loaded maps:\n");
++		while (m->service) {
++			fprintf(stderr, "[PD-MAPPER]   %s -> %s (instance %d)\n",
++				m->service, m->domain, m->instance);
++			m++;
++		}
++	}
++
+ 	fd = qrtr_open(0);
+ 	if (fd < 0) {
+ 		fprintf(stderr, "failed to open qrtr socket\n");
