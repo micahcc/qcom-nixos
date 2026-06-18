@@ -7,6 +7,10 @@ let
   cfg = config.hardware.qualcomm;
 in
 {
+  imports = [
+    ./iq-9075-evk-base.nix
+  ];
+
   config = lib.mkIf (cfg.device == "iq-9075-evk") {
     hardware.qualcomm.enable = lib.mkDefault true;
     hardware.qualcomm.platform = "sa8775p";

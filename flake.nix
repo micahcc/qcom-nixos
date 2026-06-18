@@ -34,6 +34,8 @@
         llama-server = ./modules/llama-server.nix;
         sa8775p = ./modules/sa8775p;
         iq-9075-evk = ./modules/devices/iq-9075-evk.nix;
+        iq-9075-evk-base = ./modules/devices/iq-9075-evk-base.nix;
+        deploy = ./modules/deploy;
       };
 
       packages = forAllSystems (system:
@@ -60,5 +62,20 @@
           // nixpkgs.lib.optionalAttrs (system == "aarch64-linux") aarch64Only
           // nixpkgs.lib.optionalAttrs (system == "x86_64-linux") x86Only
       );
+
+      # Reference NixOS configuration for an IQ-9075 EVK. Copy
+      # examples/iq-9075-evk/configuration.nix into your own flake and
+      # customize, or build directly:
+      #
+      #   nix build .#nixosConfigurations.iq-9075-evk.config.system.build.diskImage
+      #   nix build .#nixosConfigurations.iq-9075-evk.config.system.build.flashScript
+      nixosConfigurations.iq-9075-evk = nixpkgs.lib.nixosSystem {
+        system = "aarch64-linux";
+        modules = [
+          self.nixosModules.default
+          { nixpkgs.overlays = [ self.overlays.default ]; }
+          ./examples/iq-9075-evk/configuration.nix
+        ];
+      };
     };
 }

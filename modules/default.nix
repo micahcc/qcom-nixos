@@ -15,6 +15,7 @@
     ./llama-server.nix
     ./sa8775p
     ./devices/iq-9075-evk.nix
+    ./deploy
   ];
 
   options.hardware.qualcomm = {
