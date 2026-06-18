@@ -12,6 +12,7 @@
     ./fastrpc.nix
     ./firmware.nix
     ./kernel.nix
+    ./llama-server.nix
     ./sa8775p
     ./devices/iq-9075-evk.nix
   ];

@@ -31,6 +31,7 @@
         fastrpc = ./modules/fastrpc.nix;
         firmware = ./modules/firmware.nix;
         kernel = ./modules/kernel.nix;
+        llama-server = ./modules/llama-server.nix;
         sa8775p = ./modules/sa8775p;
         iq-9075-evk = ./modules/devices/iq-9075-evk.nix;
       };

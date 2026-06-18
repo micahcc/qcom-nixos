@@ -23,6 +23,8 @@ modules/
   fastrpc.nix      – udev rules + /run/qcom-dsp + /usr/lib/dsp/cdsp
   firmware.nix     – linux-firmware overlay + initrd firmware tree on cmdline
   kernel.nix       – pd_ignore_unused / clk_ignore_unused, base modules
+  llama-server.nix – optional services.qualcomm.llama-server.* (HTP+OpenCL
+                     llama.cpp inference server, OpenAI-compatible API)
   sa8775p/         – SA8775P platform: kernel, dragonwing-firmware,
                      qairt-dsp-binaries v73 wired into fastrpc dspPaths
   devices/
@@ -76,6 +78,22 @@ environment.systemPackages = [
   pkgs.qualcomm.dsp-imagenet-test
 ];
 ```
+
+## Run an LLM on the DSP
+
+The `services.qualcomm.llama-server` module ships an OpenAI-compatible
+inference server using llama.cpp's Hexagon HTP + Adreno OpenCL backends:
+
+```nix
+services.qualcomm.llama-server = {
+  enable = true;
+  model = "/var/lib/llama-server/model.gguf";
+  openFirewall = true;  # exposes port 8080
+};
+```
+
+Drop a GGUF model at the configured path (chown to user `llama-server`)
+and the server will listen on port 8080 with the standard OpenAI API.
 
 ## License
 
