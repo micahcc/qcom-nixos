@@ -4,24 +4,26 @@
 # distributed via Hugging Face's release_assets.json which points at S3.
 # Includes 1000 ImageNet labels and metadata describing the input/output
 # tensor shapes and quantization parameters.
-{ stdenv, lib, fetchurl, unzip }:
+#
+# Uses fetchzip so the hash is over the unpacked tree rather than the zip
+# bytes — Qualcomm occasionally repacks the archive (zip metadata
+# timestamps change) and a fetchurl hash would break.
+{ stdenv, lib, fetchzip }:
 
 stdenv.mkDerivation {
   pname = "qai-hub-beit-w8a16";
   version = "v0.56.0";
 
-  src = fetchurl {
+  src = fetchzip {
     url = "https://qaihub-public-assets.s3.us-west-2.amazonaws.com/qai-hub-models/models/beit/releases/v0.56.0/beit-qnn_dlc-w8a16.zip";
-    hash = "sha256-d+0d0LyPGj7H3p3IWT80EWNTKfcZ/0L2xcx30qvVJUQ=";
+    hash = "sha256-frzxQDuWGHYTjsNlgqakle9SocGtXl5OrlzEV70XiTk=";
+    stripRoot = true;
   };
-
-  nativeBuildInputs = [ unzip ];
-  dontUnpack = true;
 
   installPhase = ''
     runHook preInstall
     mkdir -p $out/share/beit
-    unzip -j $src -d $out/share/beit
+    cp -a $src/. $out/share/beit/
     runHook postInstall
   '';
 
