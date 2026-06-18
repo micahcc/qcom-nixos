@@ -79,11 +79,7 @@ QCOM_MK
     inherit version;
     modDirVersion = version;
     extraMeta.branch = "6.8";
-    kernelPatches = [
-      # NOTE: Do NOT add qseecom-sa8775p.patch — Ubuntu's kernel skips qseecom on
-      # SA8775P ("untested machine") and CDSP0 works fine without it. Our patch caused
-      # the SCM call to fail with -22, which poisoned CDSP0 boot (glink intent timeout).
-    ];
+    kernelPatches = [];
 
     src = patchedSrc;
 
@@ -231,9 +227,9 @@ QCOM_MK
       RPMSG_VIRTIO = module;
 
       # Match Ubuntu's settings to avoid the CDSP fastrpc ENOMEM race during
-      # boot. The cdsp0-fix workaround that restarts CDSP after losing the
-      # race leaves the DSP firmware in a state where sysmon/ssctl never
-      # register, breaking fastrpc entirely. Better to prevent the race.
+      # boot. Without these, the kernel's fastrpc probe loses a glink-intent
+      # allocation race; restarting the DSP afterwards leaves the firmware in
+      # a state where sysmon/ssctl never register, breaking fastrpc entirely.
       #
       # FW_DEVLINK_SYNC_STATE_TIMEOUT: safety valve that forces sync_state()
       #   on suppliers that never get probed (e.g. LPASS pinctrl on this EVK
