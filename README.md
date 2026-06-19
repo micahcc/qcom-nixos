@@ -4,6 +4,15 @@ NixOS modules and packages for Qualcomm Hexagon DSP / FastRPC platforms.
 
 ## Status
 
+### Todos
+
+- get rid of /usr/\* this is very un-nix, and is mostly uncessary global state.
+  Ideally anything of that form ends up in /run/qcom or /run/qualcomm-drivers,
+  similar to /run/openg-drivers (could also just be in there). The challenge is
+  finding workarounds for all the hard coded paths.
+
+### Devices
+
 - **IQ-9075 EVK** (Qualcomm Dragonwing, SA8775P SoC, Hexagon v73): supported.
   HTP inference works end-to-end (verified with the BEiT image classifier
   from Qualcomm AI Hub).
