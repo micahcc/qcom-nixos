@@ -53,5 +53,32 @@
     qualcomm.dsp-imagenet-test
   ];
 
+  # Optional: OpenAI-compatible llama.cpp inference server with Hexagon HTP
+  # + Adreno OpenCL acceleration. Drop a GGUF at /var/lib/llama-server/model.gguf
+  # (chown llama-server) before enabling — see ../../README.md for a worked
+  # example using Qwen2.5-Coder-7B-Instruct.
+  #
+  # services.qualcomm.llama-server = {
+  #   enable = true;
+  #   openFirewall = true;       # exposes port 8080 (default)
+  #
+  #   # Use both accelerators. Weights live on the Adreno GPU (real memory
+  #   # budget); the Hexagon HTP backend stays registered and the scheduler
+  #   # dispatches supported ops to it per-op.
+  #   devices = [ "GPUOpenCL" "HTP0" ];
+  #
+  #   # OpenCL backend doesn't implement SET_ROWS on quantized KV — leave
+  #   # cacheType at f16 (null) instead of the q8_0 default.
+  #   cacheType = null;
+  #
+  #   # `--fit off` skips llama-cpp's auto-shrink-to-fit step, which queries
+  #   # HTP (0 MiB free) and aborts in common_fit_params on this platform.
+  #   extraArgs = [ "--fit" "off" ];
+  #
+  #   # Bump as needed; KV cache is allocated at model load and is NOT
+  #   # runtime-resizable.
+  #   contextSize = 4096;
+  # };
+
   system.stateVersion = "25.11";
 }

@@ -224,11 +224,23 @@ inference server using llama.cpp's Hexagon HTP + Adreno OpenCL backends:
 services.qualcomm.llama-server = {
   enable = true;
   model = "/var/lib/llama-server/model.gguf";
-  contextSize = 8192;     # default 4096; KV cache scales linearly. NOT runtime-resizable.
-  threads = 8;            # default 8
-  nGpuLayers = 99;        # default 99 (= all). Set 0 for CPU-only.
-  cacheType = "q8_0";     # default q8_0. Halves KV vs f16, negligible quality loss.
   openFirewall = true;    # exposes port 8080
+  contextSize = 4096;     # KV cache is NOT runtime-resizable.
+  threads = 8;
+  nGpuLayers = 99;        # 99 = all layers offloaded; 0 = CPU only.
+
+  # SA8775P has both an Adreno OpenCL GPU and a Hexagon HTP backend.
+  # Weights need to land on the GPU (real memory budget); the HTP
+  # backend stays registered so per-op scheduling can use it.
+  devices = [ "GPUOpenCL" "HTP0" ];
+
+  # OpenCL backend doesn't implement SET_ROWS on quantized KV — keep
+  # the default f16 cache instead of q8_0.
+  cacheType = null;
+
+  # `--fit off` skips llama-cpp's auto-shrink-to-fit step. Without it,
+  # llama-cpp queries HTP (0 MiB free) and aborts in common_fit_params.
+  extraArgs = [ "--fit" "off" ];
 };
 ```
 
