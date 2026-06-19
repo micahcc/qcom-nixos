@@ -110,6 +110,27 @@ in
       '';
     };
 
+    devices = lib.mkOption {
+      type = lib.types.nullOr (lib.types.listOf lib.types.str);
+      default = null;
+      example = [ "GPUOpenCL" "HTP0" ];
+      description = ''
+        Whitelist of backend device names to offload onto, mapped to the
+        comma-separated `--device` argument. Useful when more than one
+        accelerator is registered (e.g. Adreno OpenCL + Hexagon HTP) —
+        weights will fit onto the first device with real memory budget,
+        and the scheduler will dispatch supported ops to the others.
+
+        Leave `null` to let llama-cpp pick automatically. Note that an
+        unconstrained `--n-gpu-layers 99` plus auto-pick will try to load
+        all weights onto whichever backend ranks first, which on this
+        platform is HTP (reports 0 MiB free) — leading to a crash in
+        `common_fit_params`. Setting `devices = [ "GPUOpenCL" "HTP0" ]`
+        sends weights to the Adreno GPU while keeping HTP available
+        for per-op scheduling.
+      '';
+    };
+
     cacheType = lib.mkOption {
       type = lib.types.nullOr (lib.types.enum [ "f32" "f16" "bf16" "q8_0" "q4_0" "q4_1" "q5_0" "q5_1" ]);
       default = "q8_0";
@@ -176,6 +197,8 @@ in
         ] ++ lib.optionals (cfg.cacheType != null) [
           "--cache-type-k" cfg.cacheType
           "--cache-type-v" cfg.cacheType
+        ] ++ lib.optionals (cfg.devices != null) [
+          "--device" (lib.concatStringsSep "," cfg.devices)
         ] ++ cfg.extraArgs);
         Restart = "on-failure";
         RestartSec = 5;
