@@ -6,6 +6,17 @@
 let
   cfg = config.services.qualcomm.llama-server;
   llama-cpp = if cfg.package == null then pkgs.qualcomm.llama-cpp else cfg.package;
+  # FastRPC's `libcdsprpc.so` resolves DSP-side dynamic libraries (the
+  # `libggml-htp-v73.so` skel) by searching `ADSP_LIBRARY_PATH` on the host
+  # AND falling back to the kernel's hardcoded `/usr/lib/dsp/cdsp/` path.
+  # The base fastrpc module bind-mounts `/run/qcom-dsp` (dragonwing shells +
+  # qairt-dsp QNN skels) at `/usr/lib/dsp/cdsp`. We need to add llama-cpp's
+  # HTP skel libs to the mix, so build a merged tree just for this service.
+  dspMerged = pkgs.buildEnv {
+    name = "qcom-dsp-llama-server";
+    paths = config.hardware.qualcomm.fastrpc.dspPaths
+      ++ [ "${llama-cpp}/lib" ];
+  };
 in
 {
   options.services.qualcomm.llama-server = {
@@ -77,8 +88,8 @@ in
 
       environment = {
         LD_LIBRARY_PATH = "${pkgs.qualcomm.qcom-vendor-libs}/lib";
-        ADSP_LIBRARY_PATH = "/run/qcom-dsp:${llama-cpp}/lib";
-        DSP_LIBRARY_PATH = "/run/qcom-dsp:${llama-cpp}/lib";
+        ADSP_LIBRARY_PATH = "${dspMerged}";
+        DSP_LIBRARY_PATH  = "${dspMerged}";
       };
 
       serviceConfig = {
@@ -95,10 +106,12 @@ in
         Restart = "on-failure";
         RestartSec = 5;
 
-        # fastrpc shell loading uses hardcoded /usr/lib/dsp/cdsp path. The
-        # qcom-nixos fastrpc module sets that up at /run/qcom-dsp; bind into
-        # /usr/lib/dsp/cdsp inside the unit's mount namespace.
-        BindPaths = [ "/run/qcom-dsp:/usr/lib/dsp/cdsp" ];
+        # fastrpc shell loading uses a hardcoded /usr/lib/dsp/cdsp fallback
+        # path. Bind the merged tree there inside this unit's mount namespace
+        # so libcdsprpc.so finds both the standard DSP shells/skels AND
+        # llama-cpp's libggml-htp-v73.so without polluting the system-wide
+        # /run/qcom-dsp.
+        BindPaths = [ "${dspMerged}:/usr/lib/dsp/cdsp" ];
 
         # Hardening
         ProtectHome = true;
