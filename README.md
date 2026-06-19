@@ -224,12 +224,54 @@ inference server using llama.cpp's Hexagon HTP + Adreno OpenCL backends:
 services.qualcomm.llama-server = {
   enable = true;
   model = "/var/lib/llama-server/model.gguf";
-  openFirewall = true;  # exposes port 8080
+  contextSize = 8192;     # default 4096; KV cache scales linearly. NOT runtime-resizable.
+  threads = 8;            # default 8
+  nGpuLayers = 99;        # default 99 (= all). Set 0 for CPU-only.
+  cacheType = "q8_0";     # default q8_0. Halves KV vs f16, negligible quality loss.
+  openFirewall = true;    # exposes port 8080
 };
 ```
 
-Drop a GGUF model at the configured path (chown to user `llama-server`)
-and the server will listen on port 8080 with the standard OpenAI API.
+Rebuild + activate: any change above (notably `contextSize`) requires a
+`systemctl restart llama-server` because llama-server allocates the KV
+cache at model load and can't resize it on the fly.
+
+### Installing a model
+
+There's no model bundled — you supply your own GGUF. A good default for
+coding on a 16 GB-class SA8775P is **Qwen2.5-Coder-7B-Instruct Q4_K_M**
+(~4.7 GB, Apache 2.0):
+
+```sh
+ssh root@<board-ip> '
+  curl -L -o /tmp/model.gguf \
+    https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/qwen2.5-coder-7b-instruct-q4_k_m.gguf &&
+  sudo install -o llama-server -g llama-server -m 0644 /tmp/model.gguf /var/lib/llama-server/model.gguf &&
+  sudo systemctl restart llama-server
+'
+```
+
+Other useful GGUF model sources:
+
+| Model                         | Size (Q4_K_M) | URL                                                            |
+| ----------------------------- | ------------- | -------------------------------------------------------------- |
+| `Qwen2.5-Coder-1.5B-Instruct` | ~1.0 GB       | `https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF` |
+| `Qwen2.5-Coder-3B-Instruct`   | ~2.0 GB       | `https://huggingface.co/Qwen/Qwen2.5-Coder-3B-Instruct-GGUF`   |
+| `Qwen2.5-Coder-7B-Instruct`   | ~4.7 GB       | `https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct-GGUF`   |
+| `Qwen2.5-Coder-14B-Instruct`  | ~9.0 GB       | `https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct-GGUF`  |
+
+For non-coding chat or general use, browse
+[`bartowski`](https://huggingface.co/bartowski) and
+[`unsloth`](https://huggingface.co/unsloth) on Hugging Face — both publish
+quantized GGUFs of most popular open-weight models within hours of release.
+
+Verify the server is running and answering:
+
+```sh
+curl http://<board-ip>:8080/v1/chat/completions \
+  -H 'content-type: application/json' \
+  -d '{"messages":[{"role":"user","content":"write a haiku about hexagons"}]}'
+```
 
 ## License
 
