@@ -126,6 +126,10 @@ QCOM_MK
       # Disable modules broken by Ubuntu's patches (reference removed APIs/structs)
       # or that reference headers not present in this kernel tree
       PCI_EPF_TEST = no;
+      # Ubuntu's refreshed 6.8 patch set leaves XFS online-scrub calling a
+      # helper that is absent from this tree. The feature is experimental and
+      # not needed on this host; keep ordinary XFS filesystem support enabled.
+      XFS_ONLINE_SCRUB = lib.mkForce (option no);
       SCSI_UFS_EXYNOS = no;
       WLAN_VENDOR_BCMDHD = no;
       CORESIGHT = no;
