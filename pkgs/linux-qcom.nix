@@ -113,7 +113,6 @@ QCOM_MK
       # BTF is optional for this device kernel; disable it to avoid building
       # that utility and its unnecessary debug metadata.
       DEBUG_INFO_BTF = lib.mkForce no;
-      DEBUG_INFO_BTF_MODULES = lib.mkForce no;
 
       # ACPI_HOTPLUG_CPU is a hidden bool (no prompt) auto-selected by deps.
       # NixOS base config tries to set it explicitly which fails. Override as optional.
