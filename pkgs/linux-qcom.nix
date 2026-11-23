@@ -59,6 +59,11 @@ QCOM_MK
     mkdir -p include/dt-bindings/arm
     cp include/linux/qcom_dma_heap_dt_constants.h include/dt-bindings/arm/
 
+    # Fix stale identifiers in the unrelated Tegra194 PCIe endpoint reset path.
+    # Ubuntu's refreshed source has the *_QUIET / *_US names only.
+    sed -i 's/LTSSM_STATE_PRE_DETECT,/LTSSM_STATE_PRE_DETECT_QUIET >> APPL_DEBUG_LTSSM_STATE_SHIFT,/' drivers/pci/controller/dwc/pcie-tegra194.c
+    sed -i 's/LTSSM_TIMEOUT)/LTSSM_TIMEOUT_US)/' drivers/pci/controller/dwc/pcie-tegra194.c
+
     # Remove upstream msm/ DRM driver - its XML register files are missing defines
     # that Ubuntu's patched a6xx_catalog.c references. msm_default/ is Ubuntu's working version.
     sed -i '\|obj-\$(CONFIG_DRM_MSM).*+= msm/$|d' drivers/gpu/drm/Makefile
@@ -121,7 +126,6 @@ QCOM_MK
       # Disable modules broken by Ubuntu's patches (reference removed APIs/structs)
       # or that reference headers not present in this kernel tree
       PCI_EPF_TEST = no;
-      PCIE_TEGRA194 = lib.mkForce no;
       SCSI_UFS_EXYNOS = no;
       WLAN_VENDOR_BCMDHD = no;
       CORESIGHT = no;
