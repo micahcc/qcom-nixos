@@ -18,7 +18,6 @@ in
 
   config = lib.mkIf cfg.enable {
     boot.initrd.kernelModules = [ "qrtr" "qrtr_smd" ];
-    boot.initrd.systemd.enable = lib.mkDefault true;
     boot.initrd.systemd.storePaths = [ "${qrtr}/bin/qrtr-ns" ];
 
     boot.initrd.systemd.services.qrtr-ns = {
