@@ -28,7 +28,7 @@ stdenv.mkDerivation {
     cp -a . $out/
 
     # Ensure hexagon-clang is executable
-    chmod +x $out/tools/HEXAGON_Tools/19.0.07/Tools/bin/*
+    chmod +x "$out"/tools/HEXAGON_Tools/*/Tools/bin/*
   '';
 
   # Only patch x86_64 host binaries, not hexagon target libs
