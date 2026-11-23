@@ -36,13 +36,13 @@ in
       inherit (final.qualcomm) qnn-sdk qcom-vendor-libs qairt-dsp-binaries
                                dragonwing-firmware qai-hub-beit;
     };
+    # Target-native aarch64 package: OpenCL runtime without the x86-only SDK.
+    llama-cpp = callPackage ./pkgs/llama-cpp-aarch64.nix {};
   } // prev.lib.optionalAttrs prev.stdenv.buildPlatform.isx86_64 {
-    # x86_64-only — Hexagon SDK is a cross-compiler for the host. llama-cpp
-    # is also exposed only on x86_64 build hosts because it needs hexagon-sdk
-    # at build time (the resulting binary still targets aarch64).
+    # x86_64-hosted SDK and cross-compiled aarch64 binary with Hexagon HTP.
     hexagon-sdk = callPackage ./pkgs/hexagon-sdk.nix {};
-    llama-cpp = (prev.pkgsCross.aarch64-multiplatform.callPackage ./pkgs/llama-cpp.nix {
+    llama-cpp-hexagon = prev.pkgsCross.aarch64-multiplatform.callPackage ./pkgs/llama-cpp.nix {
       hexagon-sdk = callPackage ./pkgs/hexagon-sdk.nix {};
-    });
+    };
   };
 }

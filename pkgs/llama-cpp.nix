@@ -32,7 +32,7 @@ stdenv.mkDerivation {
 
   patches = [ ];
 
-  nativeBuildInputs = [ cmake python3 nodejs ];
+  nativeBuildInputs = [ cmake python3 nodejs hexagon-sdk ];
   buildInputs = [ curl opencl-headers ocl-icd ];
 
   cmakeFlags = [
