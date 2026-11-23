@@ -4,12 +4,12 @@
 
 stdenv.mkDerivation {
   pname = "qairt-dsp-binaries";
-  version = "2.45.0.260326";
+  version = "2.49.0";
 
   src = fetchurl {
-    url = "https://ppa.launchpadcontent.net/ubuntu-qcom-iot/qcom-ppa/ubuntu/pool/main/q/qairt-sdk/qairt-dsp-binaries_2.45.0.260326-0ubuntu6~bpo24.04.1_arm64.deb";
+    url = "https://ppa.launchpadcontent.net/ubuntu-qcom-iot/qcom-ppa/ubuntu/pool/main/q/qairt-sdk/qairt-dsp-binaries_2.49.0-0ubuntu1~bpo24.04.2_arm64.deb";
     name = "qairt-dsp-binaries.deb";
-    hash = "sha256-oMbLYZeC9mKs/rLBGM7j60dTyqAxfDMTNVcMXPDsphM=";
+    hash = "sha256-Al0CXaibDYcvpBs0eX47H4KdsYQuU542gN5j7RbD6DE=";
   };
 
   nativeBuildInputs = [ dpkg ];
