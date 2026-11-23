@@ -16,8 +16,8 @@ let
       hash = "sha256-K/IyV6rfi9Me1qsoOWbtX7Nj8ISnax9//LkDXNiOW+0=";
     };
     adreno-cl = fetchurl {
-      url = "${ppaBase}/qcom-adreno/qcom-adreno-cl1_1.838.5~1+repack3-0ubuntu1_arm64.deb";
-      hash = "sha256-WqszQj3wiJV1XYoUyIxIUP7/a8J7Lv0LBnSAVipWEdM=";
+      url = "${ppaBase}/qcom-adreno/qcom-adreno-cl1_1.877.5-1_arm64.deb";
+      hash = "sha256-yu/J42ZqJLI24IVQ5vda41H0WnUxU44B9ERmTozmaGQ=";
     };
     property-vault = fetchurl {
       url = "${ppaBase}/qcom-property-vault/qcom-property-vault_1.1.0-0ubuntu1_arm64.deb";
@@ -27,7 +27,7 @@ let
 in
 stdenv.mkDerivation {
   pname = "qcom-vendor-libs";
-  version = "2024.11";
+  version = "2026.11";
 
   dontUnpack = true;
 
