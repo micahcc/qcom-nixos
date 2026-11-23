@@ -6,8 +6,8 @@
 , stdenv
 , buildPackages
 , fetchFromGitHub
-, fetchurl
 , cmake
+, nodejs
 , curl
 , python3
 , opencl-headers
@@ -18,26 +18,6 @@
 let
   hexagonToolsRoot = "${hexagon-sdk}/tools/HEXAGON_Tools/19.0.07";
   rev = "af6528e6df5d798f7f1363ec1141699be0f638e2";
-
-  # Pre-fetched UI assets (sandbox blocks network access during build)
-  ui-assets = {
-    "bundle.css" = fetchurl {
-      url = "https://huggingface.co/buckets/ggml-org/llama-ui/resolve/latest/bundle.css";
-      hash = "sha256-3nWNsbQkNyGrZwfudP5uEEk/2OEOSq6rIoYWUYnBoTc=";
-    };
-    "bundle.js" = fetchurl {
-      url = "https://huggingface.co/buckets/ggml-org/llama-ui/resolve/latest/bundle.js";
-      hash = "sha256-2Xn6ntXVbA7kyi87+otXPQY7ZxFjkrFU92fVUf8rjos=";
-    };
-    "index.html" = fetchurl {
-      url = "https://huggingface.co/buckets/ggml-org/llama-ui/resolve/latest/index.html";
-      hash = "sha256-PqVtrGlFbswvMa2E2ekSFVrjfyR6JI1/KBB6Ita8SvM=";
-    };
-    "loading.html" = fetchurl {
-      url = "https://huggingface.co/buckets/ggml-org/llama-ui/resolve/latest/loading.html";
-      hash = "sha256-JQAFfjmrgVGNFrKPXQGfYQe1irtHsqMNM4YtnntwPNw=";
-    };
-  };
 in
 stdenv.mkDerivation {
   pname = "llama-cpp";
@@ -52,16 +32,8 @@ stdenv.mkDerivation {
 
   patches = [ ];
 
-  nativeBuildInputs = [ cmake python3 ];
+  nativeBuildInputs = [ cmake python3 nodejs ];
   buildInputs = [ curl opencl-headers ocl-icd ];
-
-  postUnpack = ''
-    mkdir -p $sourceRoot/tools/ui/dist
-    cp ${ui-assets."bundle.css"} $sourceRoot/tools/ui/dist/bundle.css
-    cp ${ui-assets."bundle.js"} $sourceRoot/tools/ui/dist/bundle.js
-    cp ${ui-assets."index.html"} $sourceRoot/tools/ui/dist/index.html
-    cp ${ui-assets."loading.html"} $sourceRoot/tools/ui/dist/loading.html
-  '';
 
   cmakeFlags = [
     "-DLLAMA_BUILD_SERVER=ON"
@@ -72,7 +44,7 @@ stdenv.mkDerivation {
     "-DLLAMA_BUILD_NUMBER=0"
     "-DLLAMA_BUILD_COMMIT=${rev}"
     "-DLLAMA_BUILD_UI=ON"
-    "-DLLAMA_USE_PREBUILT_UI=ON"
+    "-DLLAMA_USE_PREBUILT_UI=OFF"
     "-DHOST_CXX_COMPILER=${buildPackages.stdenv.cc}/bin/c++"
     "-DLLAMA_CURL=ON"
     "-DBUILD_SHARED_LIBS=ON"
