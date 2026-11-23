@@ -16,7 +16,7 @@
 }:
 
 let
-  hexagonToolsRoot = "${hexagon-sdk}/tools/HEXAGON_Tools/19.0.07";
+  hexagonToolsRoot = "${hexagon-sdk}/tools/HEXAGON_Tools/19.0.08";
   rev = "af6528e6df5d798f7f1363ec1141699be0f638e2";
 in
 stdenv.mkDerivation {

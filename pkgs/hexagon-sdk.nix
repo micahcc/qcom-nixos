@@ -6,17 +6,17 @@
 
 stdenv.mkDerivation {
   pname = "hexagon-sdk";
-  version = "6.6.0.0";
+  version = "6.7.0.0";
 
   src = fetchurl {
-    url = "https://github.com/snapdragon-toolchain/hexagon-sdk/releases/download/v6.6.0.0/hexagon-sdk-v6.6.0.0-amd64-lnx.tar.xz";
-    hash = "sha256-SpFuQsHaue/fLlh3P5Aep4D6Q8kHvwVKt2Vyo7PZQvQ=";
+    url = "https://github.com/snapdragon-toolchain/hexagon-sdk/releases/download/v6.7.0.0/hexagon-sdk-v6.7.0.0-amd64-lnx.tar.xz";
+    hash = "sha256-0w6wsnqkky6j7z5d7hfvsmrciwv19nswd8y2yad7nvci9725ywh0=";
   };
 
   nativeBuildInputs = [ autoPatchelfHook ];
   buildInputs = [ stdenv.cc.cc.lib zlib gmp ];
 
-  sourceRoot = "6.6.0.0";
+  sourceRoot = "6.7.0.0";
 
   # Don't try to patch Hexagon target libraries (they're QDSP6 arch, not x86_64)
   autoPatchelfIgnoreMissingDeps = true;

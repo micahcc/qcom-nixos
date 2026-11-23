@@ -4,11 +4,11 @@
 
 stdenv.mkDerivation {
   pname = "linux-firmware-dragonwing";
-  version = "1.0.0+20260324";
+  version = "20261023";
 
   src = fetchurl {
-    url = "https://ppa.launchpadcontent.net/ubuntu-qcom-iot/qcom-ppa/ubuntu/pool/main/l/linux-firmware-dragonwing/linux-firmware-dragonwing_1.0.0+20260324_arm64.deb";
-    hash = "sha256-YLsfreJNOI3Vdro22kWMdFUEkLHaO2iO74X26aNG+7s=";
+    url = "https://ppa.launchpadcontent.net/ubuntu-qcom-iot/qcom-ppa/ubuntu/pool/main/l/linux-firmware-dragonwing/linux-firmware-dragonwing_20261023_arm64.deb";
+    hash = "sha256-MihdIa1c3gmWLPWEpLMu8CWmsX3+T1I8w2PzeYxsfNM=";
   };
 
   nativeBuildInputs = [ dpkg ];

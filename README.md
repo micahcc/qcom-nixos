@@ -6,6 +6,12 @@ NixOS modules and packages for Qualcomm Hexagon DSP / FastRPC platforms.
 
 ### Todos
 
+- Find a durable, immutable home for the Ubuntu PPA source artifacts used by the
+  `linux-qcom` kernel and Dragonwing runtime firmware packages. The PPA removes
+  superseded versions, which can break builds pinned to older URLs. The kernel
+  source archive and patches are roughly 230 MB and 22 MB; the firmware package
+  is roughly 57 MB. We are looking for a suitable place to mirror these files
+  (for example, an artifact store or Git LFS) so builds remain reproducible.
 - get rid of /usr/\* this is very un-nix, and is mostly uncessary global state.
   Ideally anything of that form ends up in /run/qcom or /run/qualcomm-drivers,
   similar to /run/openg-drivers (could also just be in there). The challenge is

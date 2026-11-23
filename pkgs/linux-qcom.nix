@@ -6,10 +6,10 @@
 { lib, fetchurl, buildLinux, runCommand, quilt, python3, gcc13Stdenv, ... }@args:
 
 let
-  # The PPA source package is named 6.8.0, but patches bump kernel to 6.8.12
+  # Latest available 6.8.0 source package in Ubuntu's qcom PPA.
   ppaVersion = "6.8.0";
   version = "6.8.12";
-  debVersion = "1071.74";
+  debVersion = "1090.95";
   ppaBase = "https://ppa.launchpadcontent.net/ubuntu-qcom-iot/qcom-ppa/ubuntu/pool/main/l/linux-qcom";
 
   # Upstream kernel source
@@ -21,7 +21,7 @@ let
   # Debian source diff (contains debian/patches/ with quilt series)
   debianDiff = fetchurl {
     url = "${ppaBase}/linux-qcom_${ppaVersion}-${debVersion}.diff.gz";
-    hash = "sha256-ADpuf7RTQjBwkbXsb/GtdMFGrFCbHGhZPBlxGyNOZ0M=";
+    hash = "sha256-YGjA5890BfiB5uDG5q7NWJbBjEcMieQ+iih6YMwRN/o=";
   };
 
   # Patched kernel source: orig + debian patches applied via quilt
