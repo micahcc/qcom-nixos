@@ -121,7 +121,7 @@ QCOM_MK
       # Disable modules broken by Ubuntu's patches (reference removed APIs/structs)
       # or that reference headers not present in this kernel tree
       PCI_EPF_TEST = no;
-      PCIE_TEGRA194 = no;
+      PCIE_TEGRA194 = lib.mkForce no;
       SCSI_UFS_EXYNOS = no;
       WLAN_VENDOR_BCMDHD = no;
       CORESIGHT = no;
