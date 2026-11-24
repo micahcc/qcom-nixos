@@ -18,17 +18,18 @@
 
 let
   hexagonToolsRoot = "${hexagon-sdk}/tools/HEXAGON_Tools/19.0.08";
-  rev = "af6528e6df5d798f7f1363ec1141699be0f638e2";
+  # Includes Inkling 2 Mini architecture and multimodal-projector support.
+  rev = "12d47ba2f462439240329b4e34a5e173e3267d66";
 in
 stdenv.mkDerivation {
   pname = "llama-cpp";
-  version = "0-unstable-2026-05-31";
+  version = "0-unstable-2026-11-23";
 
   src = fetchFromGitHub {
     owner = "ggml-org";
     repo = "llama.cpp";
     inherit rev;
-    hash = "sha256-rWOhgQUOtpF6KhHuGnY9iFj6YiSjiscGGdwMFji8gwo=";
+    hash = "sha256-yjPw44qv6RJztIAWU3qLk68KpccODWbvT+7/iRNP8Q0=";
   };
 
   patches = [ ];
