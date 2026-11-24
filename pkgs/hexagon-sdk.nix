@@ -10,7 +10,7 @@ stdenv.mkDerivation {
 
   src = fetchurl {
     url = "https://github.com/snapdragon-toolchain/hexagon-sdk/releases/download/v6.7.0.0/hexagon-sdk-v6.7.0.0-amd64-lnx.tar.xz";
-    hash = "sha256-0w6wsnqkky6j7z5d7hfvsmrciwv19nswd8y2yad7nvci9725ywh0=";
+    hash = "sha256-AHJfxEmRbXua8sKjxrVNYfPIctXbwdPKP9L4ObHV3HA=";
   };
 
   nativeBuildInputs = [ autoPatchelfHook ];
@@ -28,7 +28,7 @@ stdenv.mkDerivation {
     cp -a . $out/
 
     # Ensure hexagon-clang is executable
-    chmod +x $out/tools/HEXAGON_Tools/19.0.07/Tools/bin/*
+    chmod +x "$out"/tools/HEXAGON_Tools/*/Tools/bin/*
   '';
 
   # Only patch x86_64 host binaries, not hexagon target libs

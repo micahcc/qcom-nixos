@@ -38,6 +38,9 @@ stdenv.mkDerivation {
   autoPatchelfIgnoreMissingDeps = [
     "libproperty_vault.so"
     "libdmabufheap.so"
+    # libCB references graphics-side libraries; this package bundles only CL.
+    "libadreno_utils.so.1"
+    "libgsl.so.1"
   ];
 
   installPhase = ''
