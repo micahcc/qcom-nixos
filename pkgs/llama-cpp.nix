@@ -12,6 +12,7 @@
 , python3
 , opencl-headers
 , ocl-icd
+, openssl
 , hexagon-sdk
 }:
 
@@ -33,7 +34,7 @@ stdenv.mkDerivation {
   patches = [ ];
 
   nativeBuildInputs = [ cmake python3 nodejs hexagon-sdk ];
-  buildInputs = [ curl opencl-headers ocl-icd ];
+  buildInputs = [ curl opencl-headers ocl-icd openssl ];
 
   cmakeFlags = [
     "-DLLAMA_BUILD_SERVER=ON"
@@ -62,7 +63,7 @@ stdenv.mkDerivation {
     "-DGGML_METAL=OFF"
     "-DGGML_OPENMP=OFF"
     "-DGGML_LLAMAFILE=OFF"
-    "-DLLAMA_OPENSSL=OFF"
+    "-DLLAMA_OPENSSL=ON"
     "-DHEXAGON_SDK_ROOT=${hexagon-sdk}"
     "-DHEXAGON_TOOLS_ROOT=${hexagonToolsRoot}"
     "-DPREBUILT_LIB_DIR=UbuntuARM_aarch64"
