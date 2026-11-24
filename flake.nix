@@ -56,7 +56,7 @@
           # is built here too because it needs hexagon-sdk during compile;
           # the produced binary still targets aarch64.
           x86Only = {
-            inherit (q) hexagon-sdk llama-cpp;
+            inherit (q) hexagon-sdk llama-cpp llama-cpp-hexagon;
           };
         in common
           // nixpkgs.lib.optionalAttrs (system == "aarch64-linux") aarch64Only
