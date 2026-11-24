@@ -224,21 +224,24 @@ ssh root@<board-ip> qcom-dsp-imagenet-test
 ## Run an LLM on the DSP
 
 The `services.qualcomm.llama-server` module ships an OpenAI-compatible
-inference server using llama.cpp's Hexagon HTP + Adreno OpenCL backends:
+inference server. For Hexagon HTP, use the x86_64-built, aarch64-targeted
+`qualcomm.llama-cpp-hexagon` package, not the native OpenCL-only package.
+The reference flake supplies `pkgsX86` through `specialArgs` for this purpose.
+When copying the example into your own flake, copy that declaration too.
 
 ```nix
 services.qualcomm.llama-server = {
   enable = true;
+  package = pkgsX86.qualcomm.llama-cpp-hexagon;
   model = "/var/lib/llama-server/model.gguf";
   openFirewall = true;    # exposes port 8080
   contextSize = 4096;     # KV cache is NOT runtime-resizable.
   threads = 8;
   nGpuLayers = 99;        # 99 = all layers offloaded; 0 = CPU only.
 
-  # SA8775P has both an Adreno OpenCL GPU and a Hexagon HTP backend.
-  # Weights need to land on the GPU (real memory budget); the HTP
-  # backend stays registered so per-op scheduling can use it.
-  devices = [ "GPUOpenCL" "HTP0" ];
+  # Start with HTP. Only add GPUOpenCL after confirming it is available
+  # with --list-devices in the service's environment.
+  devices = [ "HTP0" ];
 
   # OpenCL backend doesn't implement SET_ROWS on quantized KV — keep
   # the default f16 cache instead of q8_0.
@@ -253,6 +256,59 @@ services.qualcomm.llama-server = {
 Rebuild + activate: any change above (notably `contextSize`) requires a
 `systemctl restart llama-server` because llama-server allocates the KV
 cache at model load and can't resize it on the fly.
+
+### Build architecture and copying outputs
+
+The Hexagon SDK requires an x86_64-linux builder even though the resulting
+llama-server runs on aarch64. Build on x86_64 and use `nix copy` to transfer
+the package closure to the board, or configure an x86_64 remote builder.
+Use a dedicated SSH build account, a daemon-readable private key, and pinned
+SSH host keys; an interactive SSH session alone does not test daemon access.
+Do not disable signature checking globally: trust a signing key for regular
+transfers, or explicitly permit an unsigned transfer from a trusted builder.
+
+For an already-built kernel, copy every output needed by the system, not
+just `Image`: the kernel's separate `modules` output is also required.
+Use `nix-store -q --outputs <kernel.drv>` and check which outputs exist on the
+source. A dry run after copying should no longer list the kernel derivation;
+initrd and shrunk-module derivations may still need to build.
+
+### Diagnosing HTP startup failures
+
+Check `journalctl -u llama-server` and `journalctl -k`. Loading
+`libggml-htp-v73.so` successfully establishes that FastRPC communication is
+working; a later buffer-mapping failure is not evidence of missing glink
+interrupts. Verify current `/proc/interrupts` counts rather than relying on
+old observations or fixed IRQ numbers.
+
+Repeated failed sessions have been observed leaving hundreds of DMA buffers
+attached to CDSP0 and exhausting its 32-bit IOMMU virtual address space.
+`Cannot allocate memory` while mapping a small buffer can therefore occur
+with ample free RAM and CMA. As root, inspect `/sys/kernel/debug/dma_buf/bufinfo`.
+The example limits restarts to mitigate this; it does not repair the driver leak.
+
+During recovery, first stop llama-server and any other CDSP0 clients. A
+controlled CDSP0 remoteproc stop/start cleared the mapping failure in testing.
+Identify the correct remoteproc using its `name` and `firmware` attributes;
+**do not assume a stable remoteproc index**. Restarting it interrupts all clients
+on that DSP. A reboot may still be needed to reclaim retained host buffers.
+
+`invalid device: GPUOpenCL` is a separate failure: vendor libraries alone do
+not provide a working OpenCL ICD. Keep `devices = [ "HTP0" ]` until OpenCL
+is independently validated. A healthy HTTP endpoint and successful device
+initialization do not prove correct inference: test generated output too.
+Repetitive nonsensical output was observed with the tested HTP setup and
+remains unresolved; do not treat this example as validated model accuracy.
+
+### Boot partition space
+
+The example retains two GRUB configurations to reduce pressure on the 512 MiB
+ESP. Kernel/initrd copies and firmware-owned files can still fill it. GRUB
+copies new files before completing cleanup, so a full ESP may prevent an update
+even after lowering the retention limit. With no update running, remove only
+confirmed incomplete `.tmp` copies or deliberately retire older boot artifacts,
+keeping the current boot and a known-good fallback. Do not delete firmware files
+such as `Persisted_Capsules.bin` merely because they are large.
 
 ### Installing a model
 

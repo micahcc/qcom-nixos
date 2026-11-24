@@ -71,6 +71,11 @@
       #   nix build .#nixosConfigurations.iq-9075-evk.config.system.build.flashScript
       nixosConfigurations.iq-9075-evk = nixpkgs.lib.nixosSystem {
         system = "aarch64-linux";
+        specialArgs.pkgsX86 = import nixpkgs {
+          system = "x86_64-linux";
+          config.allowUnfree = true;
+          overlays = [ self.overlays.default ];
+        };
         modules = [
           self.nixosModules.default
           { nixpkgs.overlays = [ self.overlays.default ]; }

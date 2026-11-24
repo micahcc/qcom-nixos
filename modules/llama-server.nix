@@ -113,21 +113,20 @@ in
     devices = lib.mkOption {
       type = lib.types.nullOr (lib.types.listOf lib.types.str);
       default = null;
-      example = [ "GPUOpenCL" "HTP0" ];
+      example = [ "HTP0" ];
       description = ''
         Whitelist of backend device names to offload onto, mapped to the
         comma-separated `--device` argument. Useful when more than one
-        accelerator is registered (e.g. Adreno OpenCL + Hexagon HTP) —
-        weights will fit onto the first device with real memory budget,
-        and the scheduler will dispatch supported ops to the others.
+        accelerator is registered (e.g. Adreno OpenCL + Hexagon HTP).
+        Start with `[ "HTP0" ]` for the Hexagon-enabled package. Only add
+        GPUOpenCL after confirming it is available in the service environment
+        with `--list-devices`; vendor libraries alone do not register an ICD.
 
-        Leave `null` to let llama-cpp pick automatically. Note that an
-        unconstrained `--n-gpu-layers 99` plus auto-pick will try to load
-        all weights onto whichever backend ranks first, which on this
-        platform is HTP (reports 0 MiB free) — leading to a crash in
-        `common_fit_params`. Setting `devices = [ "GPUOpenCL" "HTP0" ]`
-        sends weights to the Adreno GPU while keeping HTP available
-        for per-op scheduling.
+        Leave `null` to let llama-cpp pick automatically. HTP can report
+        0 MiB free, causing automatic fitting to fail; the reference example
+        disables fitting with `extraArgs = [ "--fit" "off" ]`.
+        Successful backend initialization does not guarantee correct model
+        output; validate inference separately.
       '';
     };
 
